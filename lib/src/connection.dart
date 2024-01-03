@@ -1,17 +1,12 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:api_queue_handler/src/api_request.dart';
 import 'package:api_queue_handler/src/methods.dart';
 import 'package:api_queue_handler/src/model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-
-/// How to use
-/// ApiManager().initialize('your base url');
-/// ApiManager().connect(endpoint: 'a/b/c');
+import 'dart:io' if (dart.library.html) 'dart:html';
 
 
 class ApiManager {
