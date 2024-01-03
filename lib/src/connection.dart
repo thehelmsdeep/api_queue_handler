@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io' if (dart.library.html) 'dart:html';
 
-
 class ApiManager {
   final Queue<ApiRequest> _requestQueue = Queue();
 
@@ -31,7 +30,7 @@ class ApiManager {
   Future<ApiResponseModel> connect({
     required String endpoint,
     RequestMethod method = RequestMethod.get,
-    Map<String,dynamic>? query,
+    Map<String, dynamic>? query,
     Map<String, String>? customHeader,
     String? filePath,
   }) async {
@@ -86,7 +85,7 @@ class ApiManager {
     dynamic body,
     Map<String, String>? customHeader,
   }) async {
-  //  String jsonString = jsonEncode(body);
+    //  String jsonString = jsonEncode(body);
 
     final header = <String, String>{
       'Content-Type': 'application/json',
@@ -99,7 +98,12 @@ class ApiManager {
 
     try {
       final uri = _constructUri(endpoint);
-      final response = await _sendRequest(uri, method, body, header,);
+      final response = await _sendRequest(
+        uri,
+        method,
+        body,
+        header,
+      );
 
       return _handleResponse(httpResponse: response);
     } catch (e) {
@@ -115,8 +119,12 @@ class ApiManager {
     return Uri.parse(fullUrl);
   }
 
-  Future<http.Response> _sendRequest(Uri uri, RequestMethod method, dynamic body,
-      Map<String, String> customHeader,) async {
+  Future<http.Response> _sendRequest(
+    Uri uri,
+    RequestMethod method,
+    dynamic body,
+    Map<String, String> customHeader,
+  ) async {
     late http.Response response;
 
     switch (method) {

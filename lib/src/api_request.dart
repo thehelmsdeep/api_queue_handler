@@ -7,7 +7,7 @@ class ApiRequest {
   final Completer<ApiResponseModel> completer;
   final String endpoint;
   final RequestMethod method;
-  final Map<String,dynamic>? query;
+  final Map<String, dynamic>? query;
   final Map<String, String>? customHeader;
 
   ApiRequest({
