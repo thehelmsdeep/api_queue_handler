@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'package:api_queue_handler/src/api_request.dart';
+import 'package:api_queue_handler/src/model/request.dart';
 import 'package:api_queue_handler/src/methods.dart';
-import 'package:api_queue_handler/src/model.dart';
+import 'package:api_queue_handler/src/model/response.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io' if (dart.library.html) 'dart:html';
 
 class ApiManager {
-  final Queue<ApiRequest> _requestQueue = Queue();
+  final Queue<SequentialRequestModel> _requestQueue = Queue();
 
   bool _isProcessingQueue = false;
 
@@ -27,20 +27,29 @@ class ApiManager {
     _baseUrl = baseUrl;
   }
 
-  Future<ApiResponseModel> connect({
+  Future<ResponseModel> request({
     required String endpoint,
+    required bool runParallel,
     RequestMethod method = RequestMethod.get,
-    Map<String, dynamic>? query,
+    Map<String, dynamic>? body,
     Map<String, String>? customHeader,
-    String? filePath,
   }) async {
-    final Completer<ApiResponseModel> completer = Completer<ApiResponseModel>();
+    if (runParallel) {
+      return _executeRequest(
+        endpoint: endpoint,
+        customHeader: customHeader,
+        body: body,
+        method: method,
+      );
+    }
 
-    final apiRequest = ApiRequest(
+    final Completer<ResponseModel> completer = Completer<ResponseModel>();
+
+    final apiRequest = SequentialRequestModel(
       completer: completer,
       endpoint: endpoint,
       method: method,
-      query: query,
+      body: body,
       customHeader: customHeader,
     );
 
@@ -63,7 +72,7 @@ class ApiManager {
         final result = await _executeRequest(
           endpoint: apiRequest.endpoint,
           customHeader: apiRequest.customHeader,
-          body: apiRequest.query,
+          body: apiRequest.body,
           method: apiRequest.method,
         );
 
@@ -79,10 +88,10 @@ class ApiManager {
     debugPrint('Api process completed');
   }
 
-  Future<ApiResponseModel> _executeRequest({
+  Future<ResponseModel> _executeRequest({
     required String endpoint,
     RequestMethod method = RequestMethod.get,
-    dynamic body,
+    Map<String, dynamic>? body,
     Map<String, String>? customHeader,
   }) async {
     //  String jsonString = jsonEncode(body);
@@ -107,7 +116,7 @@ class ApiManager {
 
       return _handleResponse(httpResponse: response);
     } catch (e) {
-      return ApiResponseModel(
+      return ResponseModel(
           statusCode: HttpStatus.internalServerError,
           success: false,
           message: e.toString());
@@ -115,14 +124,14 @@ class ApiManager {
   }
 
   Uri _constructUri(String endpoint) {
-    final fullUrl = '$_baseUrl$endpoint';
+    final fullUrl = '$_baseUrl/$endpoint';
     return Uri.parse(fullUrl);
   }
 
   Future<http.Response> _sendRequest(
     Uri uri,
     RequestMethod method,
-    dynamic body,
+    Map<String, dynamic>? body,
     Map<String, String> customHeader,
   ) async {
     late http.Response response;
@@ -148,14 +157,14 @@ class ApiManager {
     return response;
   }
 
-  ApiResponseModel _handleResponse({required http.Response httpResponse}) {
+  ResponseModel _handleResponse({required http.Response httpResponse}) {
     final statusCode = httpResponse.statusCode;
 
     final Map<String, dynamic> responseData = json.decode(httpResponse.body);
 
     switch (statusCode) {
       case HttpStatus.ok:
-        return ApiResponseModel.fromJson(result: responseData);
+        return ResponseModel.fromJson(result: responseData);
 
       case HttpStatus.unauthorized:
         return _handleUnauthorizedResponse(
@@ -178,50 +187,50 @@ class ApiManager {
     }
   }
 
-  ApiResponseModel _handleUnauthorizedResponse(
+  ResponseModel _handleUnauthorizedResponse(
       {required String message, required int statusCode}) {
     //TODO
-    return ApiResponseModel(
+    return ResponseModel(
       success: false,
       statusCode: statusCode,
       message: message,
     );
   }
 
-  ApiResponseModel _handleForbiddenResponse(
+  ResponseModel _handleForbiddenResponse(
       {required String message, required int statusCode}) {
     //TODO
-    return ApiResponseModel(
+    return ResponseModel(
       success: false,
       statusCode: statusCode,
       message: message,
     );
   }
 
-  ApiResponseModel _handleNotFoundResponse(
+  ResponseModel _handleNotFoundResponse(
       {required String message, required int statusCode}) {
     //TODO
-    return ApiResponseModel(
+    return ResponseModel(
       success: false,
       statusCode: statusCode,
       message: message,
     );
   }
 
-  ApiResponseModel _handleErrorResponse(
+  ResponseModel _handleErrorResponse(
       {required String message, required int statusCode}) {
     //TODO
-    return ApiResponseModel(
+    return ResponseModel(
       success: false,
       statusCode: statusCode,
       message: message,
     );
   }
 
-  ApiResponseModel _internalServerErrorResponse(
+  ResponseModel _internalServerErrorResponse(
       {required String message, required int statusCode}) {
     //TODO
-    return ApiResponseModel(
+    return ResponseModel(
       success: false,
       statusCode: statusCode,
       message: message,

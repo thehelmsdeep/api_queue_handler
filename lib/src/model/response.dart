@@ -1,6 +1,6 @@
 import 'dart:io' if (dart.library.html) 'dart:html';
 
-class ApiResponseModel {
+class ResponseModel {
   final bool success;
   final int statusCode;
   final Map<String, dynamic>? data;
@@ -8,16 +8,16 @@ class ApiResponseModel {
 
   bool get isSuccessful => success && statusCode == HttpStatus.ok;
 
-  ApiResponseModel({
+  ResponseModel({
     this.success = false,
     this.statusCode = HttpStatus.internalServerError,
     this.data,
     this.message,
   });
 
-  factory ApiResponseModel.fromJson(
+  factory ResponseModel.fromJson(
       {required Map<String, dynamic>? result, String? message}) {
-    return ApiResponseModel(
+    return ResponseModel(
       success: true,
       statusCode: HttpStatus.ok,
       data: result,
