@@ -5,14 +5,15 @@
 
 
 
-    ```sh
+```sh
     git clone https://github.com/thehelmsdeep/api_queue_handler.git
-    ```
+```
 
 
-    ```dart
+
+```dart
     import 'package:api_queue_handler/api_queue_handler.dart';
-    ```
+```
 
 
 ```dart
