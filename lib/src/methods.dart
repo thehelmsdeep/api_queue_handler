@@ -1,1 +1,1 @@
-enum ServerMethod { get, post, put, delete, upload }
+enum RequestMethod { get, post, put, delete, }

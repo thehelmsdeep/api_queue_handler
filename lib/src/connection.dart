@@ -10,8 +10,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 /// How to use
-/// ApiManager().initialize('your_base_url');
-/// ApiManager().connect(endpoint: 'a/b');
+/// ApiManager().initialize('your base url');
+/// ApiManager().connect(endpoint: 'a/b/c');
 
 
 class ApiManager {
@@ -35,8 +35,8 @@ class ApiManager {
 
   Future<ApiResponseModel> connect({
     required String endpoint,
-    ServerMethod method = ServerMethod.get,
-    dynamic body,
+    RequestMethod method = RequestMethod.get,
+    Map<String,dynamic>? query,
     Map<String, String>? customHeader,
     String? filePath,
   }) async {
@@ -46,9 +46,8 @@ class ApiManager {
       completer: completer,
       endpoint: endpoint,
       method: method,
-      body: body,
+      query: query,
       customHeader: customHeader,
-      filePath: filePath,
     );
 
     _requestQueue.add(apiRequest);
@@ -70,9 +69,8 @@ class ApiManager {
         final result = await _executeRequest(
           endpoint: apiRequest.endpoint,
           customHeader: apiRequest.customHeader,
-          body: apiRequest.body,
+          body: apiRequest.query,
           method: apiRequest.method,
-          filePath: apiRequest.filePath,
         );
 
         apiRequest.completer.complete(result);
@@ -89,12 +87,11 @@ class ApiManager {
 
   Future<ApiResponseModel> _executeRequest({
     required String endpoint,
-    ServerMethod method = ServerMethod.get,
+    RequestMethod method = RequestMethod.get,
     dynamic body,
     Map<String, String>? customHeader,
-    String? filePath,
   }) async {
-    String jsonString = jsonEncode(body);
+  //  String jsonString = jsonEncode(body);
 
     final header = <String, String>{
       'Content-Type': 'application/json',
@@ -107,7 +104,7 @@ class ApiManager {
 
     try {
       final uri = _constructUri(endpoint);
-      final response = await _sendRequest(uri, method, body, header, filePath);
+      final response = await _sendRequest(uri, method, body, header,);
 
       return _handleResponse(httpResponse: response);
     } catch (e) {
@@ -123,40 +120,25 @@ class ApiManager {
     return Uri.parse(fullUrl);
   }
 
-  Future<http.Response> _sendRequest(Uri uri, ServerMethod method, dynamic body,
-      Map<String, String> customHeader, String? filePath) async {
+  Future<http.Response> _sendRequest(Uri uri, RequestMethod method, dynamic body,
+      Map<String, String> customHeader,) async {
     late http.Response response;
 
     switch (method) {
-      case ServerMethod.post:
+      case RequestMethod.post:
         response =
             await http.post(uri, headers: customHeader, body: jsonEncode(body));
         break;
-      case ServerMethod.get:
+      case RequestMethod.get:
         response = await http.get(uri, headers: customHeader);
         break;
-      case ServerMethod.put:
+      case RequestMethod.put:
         response =
             await http.put(uri, headers: customHeader, body: jsonEncode(body));
         break;
-      case ServerMethod.delete:
+      case RequestMethod.delete:
         response = await http.delete(uri,
             headers: customHeader, body: jsonEncode(body));
-        break;
-      case ServerMethod.upload:
-        if (filePath != null) {
-          var request = http.MultipartRequest('POST', uri)
-            ..headers.addAll(customHeader)
-            ..fields['body'] = jsonEncode(body);
-
-          var file = await http.MultipartFile.fromPath('file', filePath);
-          request.files.add(file);
-
-          var streamedResponse = await request.send();
-          response = await http.Response.fromStream(streamedResponse);
-        } else {
-          throw ArgumentError("File path is required for upload");
-        }
         break;
     }
 
