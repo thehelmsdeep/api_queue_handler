@@ -1,6 +1,6 @@
 name: api_queue_handler
 description: "Queue up your API requests effortlessly, ensuring they are processed one after the other."
-version: 1.0.4
+version: 1.0.5
 homepage: https://github.com/thehelmsdeep/api_queue_handler
 
 environment:
